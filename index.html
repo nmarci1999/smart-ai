@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="hu" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart-AI — Webshopod Jövője</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.29/dist/lenis.min.js"></script>
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent:      '#FF4D00',
+            surface:     '#ffffff',
+            textMain:    '#111827',
+            textMuted:   '#4B5563',
+            borderLight: '#e5e7eb',
+          },
+          fontFamily: {
+            sans:    ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+            mono:    ['JetBrains Mono', 'monospace'],
+          },
+          animation: {
+            'spin-slow':    'spin 15s linear infinite',
+            'reverse-spin': 'spin 20s linear infinite reverse',
+            'marquee':      'marquee 30s linear infinite',
+            'scan':         'scan 4s linear infinite',
+            'blink':        'blink 2s ease-in-out infinite',
+            'dash':         'dash 20s linear infinite',
+            'pulse-fast':   'pulse 1.5s cubic-bezier(0.4,0,0.6,1) infinite',
+          },
+          keyframes: {
+            marquee: {
+              '0%':   { transform: 'translateX(0)' },
+              '100%': { transform: 'translateX(-33.333%)' },
+            },
+            scan: {
+              '0%':   { top: '-20%' },
+              '100%': { top: '120%' },
+            },
+            blink: {
+              '0%, 100%': { opacity: 1 },
+              '50%':      { opacity: 0.3 },
+            },
+            dash: { to: { 'stroke-dashoffset': '1000' } },
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    html { background-color: #fafafa; }
+    body { margin:0; padding:0; background:transparent; color:#111827; overflow-x:hidden; }
+
+    .glass-panel {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .spotlight-card::before {
+      content:""; position:absolute; top:0; left:0; right:0; bottom:0;
+      border-radius:inherit;
+      background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(0,0,0,0.02), transparent 40%);
+      z-index:2; opacity:0; transition:opacity 0.5s; pointer-events:none;
+    }
+    .spotlight-card:hover::before { opacity:1; }
+    .spotlight-card::after {
+      content:""; position:absolute; top:0; left:0; right:0; bottom:0;
+      border-radius:inherit; padding:1px;
+      background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255,77,0,0.4), transparent 40%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      z-index:3; opacity:0; transition:opacity 0.5s; pointer-events:none;
+    }
+    .spotlight-card:hover::after { opacity:1; }
+
+    .marquee-mask {
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+
+    .scan-line {
+      position:absolute; left:0; width:100%; height:50px;
+      background: linear-gradient(to bottom, transparent, rgba(255,77,0,0.1), transparent);
+      opacity:0.5; animation: scan 3s linear infinite; z-index:10; pointer-events:none;
+    }
+
+    .noise-overlay {
+      position:fixed; inset:0; z-index:9000; pointer-events:none; opacity:0.03;
+      mix-blend-mode:multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    .btn-magnetic { display:inline-block; }
+    .skew-target { will-change:transform; }
+
+    .tier-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      font-family:'JetBrains Mono',monospace;
+      font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+    }
+
+    .card-elevated {
+      transform: translateY(-12px);
+      box-shadow: 0 20px 60px rgba(255,77,0,0.15), 0 0 0 1px rgba(255,77,0,0.3);
+    }
+
+    /* Service tabs */
+    .service-tab {
+      background: white;
+      border-color: #e5e7eb;
+      color: #6b7280;
+    }
+    .service-tab:hover {
+      border-color: #FF4D00;
+      color: #FF4D00;
+    }
+    .service-tab.active {
+      background: #FF4D00;
+      border-color: #FF4D00;
+      color: white;
+    }
+    .service-panel {
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .service-panel.active {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transform: none !important;
+    }
+    .service-panel:not(.active) {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+    }
+  </style>
+</head>
+
+<body class="antialiased selection:bg-accent selection:text-white bg-[#fafafa]">
+
+  <!-- NOISE LAYER -->
+  <div class="noise-overlay"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       NAV
+  ═══════════════════════════════════════════════ -->
+  <nav class="fixed top-0 w-full z-50 border-b border-black/5 bg-white/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+
+      <a href="#">
+        <span class="font-display font-bold text-xl tracking-tighter text-black hover:text-accent transition-colors">
+          SMART<span class="text-accent">-AI</span>
+        </span>
+      </a>
+
+      <div class="hidden md:flex gap-8 text-xs font-mono tracking-widest text-gray-500">
+        <a href="#szolgaltatasok" class="hover:text-black transition-colors">[01] WEBSHOPOK</a>
+        <a href="#folyamat"       class="hover:text-black transition-colors">[02] FOLYAMAT</a>
+        <a href="#arak"           class="hover:text-black transition-colors">[03] ÁRAK</a>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <span class="hidden lg:flex items-center gap-2 text-[10px] font-mono text-gray-500">
+          <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse inline-block"></span>
+          STÁTUSZ: AKTÍV
+        </span>
+        <button class="border border-black/10 px-6 py-2 text-xs font-bold uppercase tracking-wider text-black bg-white hover:bg-black hover:text-white transition-all btn-magnetic shadow-sm">
+          AJÁNLAT KÉRÉSE
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════════
+         HERO
+    ═══════════════════════════════════════════════ -->
+    <section class="skew-target relative min-h-screen w-full flex flex-col justify-center items-center overflow-hidden pt-20">
+
+      <!-- Grid background -->
+      <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_10%,transparent_100%)] z-0"></div>
+
+      <div class="relative z-20 text-center max-w-6xl px-6">
+
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-3 border border-accent/20 bg-accent/5 px-4 py-1.5 rounded-full mb-8 backdrop-blur-sm">
+          <span class="w-2 h-2 bg-accent rounded-full animate-pulse inline-block"></span>
+          <span class="font-mono text-[10px] text-accent tracking-widest uppercase font-semibold">
+            AI-val növekvő webshopok ügynöksége
+          </span>
+        </div>
+
+        <!-- H1 -->
+        <h1 class="font-display font-bold tracking-tighter mb-6 leading-[0.9] text-black scramble-text"
+            style="font-size: clamp(3.5rem, 9vw, 8.5rem);">
+          SMART-AI
+          <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-black via-gray-600 to-gray-400">
+            // WEBSHOPOD
+          </span>
+          <br>
+          JÖVŐJE
+        </h1>
+
+        <p class="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed mb-10 font-light">
+          Nem ígérünk. Nem kiszervezzük. Nem általánosítunk.
+          <br class="hidden md:block">
+          AI automatizációval mérhető bevételnövekedést szállítunk minden
+          <span class="text-black font-semibold">magyar webshopnak.</span>
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <button class="bg-accent text-white px-8 py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-all btn-magnetic shadow-lg shadow-accent/20 w-full sm:w-auto">
+            INGYENES AI AUDIT
+          </button>
+          <button class="px-8 py-4 border border-black/10 text-black bg-white font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all btn-magnetic shadow-sm w-full sm:w-auto">
+            MEGNÉZEM AZ EREDMÉNYEKET
+          </button>
+        </div>
+
+        <!-- Trust row -->
+        <div class="mt-14 flex flex-wrap items-center justify-center gap-8 opacity-50 hover:opacity-100 transition-opacity duration-500">
+          <div class="flex items-center gap-2">
+            <span class="iconify w-4 h-4 text-black" data-icon="lucide:zap"></span>
+            <span class="text-xs font-mono text-gray-500 tracking-widest">AI AUTOMATIZÁCIÓ</span>
+          </div>
+          <div class="w-px h-4 bg-gray-300"></div>
+          <div class="flex items-center gap-2">
+            <span class="iconify w-4 h-4 text-black" data-icon="lucide:trending-up"></span>
+            <span class="text-xs font-mono text-gray-500 tracking-widest">WEBSHOP NÖVEKEDÉS</span>
+          </div>
+          <div class="w-px h-4 bg-gray-300"></div>
+          <div class="flex items-center gap-2">
+            <span class="iconify w-4 h-4 text-black" data-icon="lucide:shield"></span>
+            <span class="text-xs font-mono text-gray-500 tracking-widest">TEMU ELLEN</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         MARQUEE
+    ═══════════════════════════════════════════════ -->
+    <div class="border-y border-black/5 bg-white py-7 relative z-20 overflow-hidden marquee-mask w-full">
+      <div class="flex whitespace-nowrap animate-marquee w-[max-content]">
+
+        <!-- Block ×3 for seamless loop -->
+        <div class="flex gap-12 px-10 items-center">
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">AI AUTOMATIZÁCIÓ</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">WEBSHOP NÖVEKEDÉS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">TEMU ELLEN</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">BEVÉTEL NÖVELÉS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">KONVERZIÓ OPTIMALIZÁLÁS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+        </div>
+        <div class="flex gap-12 px-10 items-center">
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">AI AUTOMATIZÁCIÓ</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">WEBSHOP NÖVEKEDÉS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">TEMU ELLEN</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">BEVÉTEL NÖVELÉS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">KONVERZIÓ OPTIMALIZÁLÁS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+        </div>
+        <div class="flex gap-12 px-10 items-center">
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">AI AUTOMATIZÁCIÓ</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">WEBSHOP NÖVEKEDÉS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">TEMU ELLEN</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">BEVÉTEL NÖVELÉS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">KONVERZIÓ OPTIMALIZÁLÁS</span>
+          <span class="text-accent font-display font-bold text-2xl">//</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         PAIN / EREDMÉNYEK
+    ═══════════════════════════════════════════════ -->
+    <section id="eredmenyek" class="skew-target py-28 bg-white border-t border-black/5 relative z-20">
+      <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+        <!-- LEFT -->
+        <div>
+          <span class="text-accent font-mono text-xs tracking-widest block mb-4 uppercase">/// miért veszítesz pénzt most</span>
+          <h2 class="font-display font-bold text-4xl md:text-5xl mb-6 text-black leading-tight scramble-text">
+            A Temu megöli<br>a webshopod.
+          </h2>
+          <p class="text-gray-600 text-lg mb-10 leading-relaxed font-light">
+            A hazai webshopok egyharmada már forgalomcsökkenést tapasztalt. Az egyetlen ütőkártya ami megmarad: a vásárlói élmény — és pontosan ott tud az AI <span class="text-black font-semibold">mérhető ROI-t szállítani.</span>
+          </p>
+
+          <div class="space-y-4">
+            <div class="group flex gap-4 p-4 rounded-lg border border-transparent hover:border-black/5 hover:bg-gray-50 transition-all cursor-pointer">
+              <div class="font-mono text-gray-300 text-sm group-hover:text-accent font-bold transition-colors shrink-0 pt-0.5">01</div>
+              <div>
+                <h4 class="font-bold text-black mb-1">Ingyenes AI Audit — 48 órán belül</h4>
+                <p class="text-sm text-gray-500 leading-relaxed">Megmutatjuk pontosan, hol folyik el a pénzed, és mit automatizálnánk nálad elsőként.</p>
+              </div>
+            </div>
+            <div class="group flex gap-4 p-4 rounded-lg border border-transparent hover:border-black/5 hover:bg-gray-50 transition-all cursor-pointer">
+              <div class="font-mono text-gray-300 text-sm group-hover:text-accent font-bold transition-colors shrink-0 pt-0.5">02</div>
+              <div>
+                <h4 class="font-bold text-black mb-1">Mérhető eredmények, nem ígéretek</h4>
+                <p class="text-sm text-gray-500 leading-relaxed">Minden projekt KPI-okhoz kötött. Ha nem látod az eredményt, mi sem vagyunk elégedettek.</p>
+              </div>
+            </div>
+            <div class="group flex gap-4 p-4 rounded-lg border border-transparent hover:border-black/5 hover:bg-gray-50 transition-all cursor-pointer">
+              <div class="font-mono text-gray-300 text-sm group-hover:text-accent font-bold transition-colors shrink-0 pt-0.5">03</div>
+              <div>
+                <h4 class="font-bold text-black mb-1">Webshop-specifikus AI — nem általános</h4>
+                <p class="text-sm text-gray-500 leading-relaxed">Shoprenter, WooCommerce, egyedi platform — a te ökoszisztémádba integrálva.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Phone mockup -->
+        <div class="flex justify-center items-center relative">
+
+          <!-- Glow -->
+          <div class="absolute inset-0 bg-gradient-to-br from-accent/20 via-transparent to-orange-200/20 rounded-full blur-3xl scale-75 opacity-60 pointer-events-none"></div>
+
+          <!-- Phone frame -->
+          <div class="relative z-10" style="width:260px;">
+
+            <!-- Outer shell -->
+            <div class="relative bg-[#0f0f0f] rounded-[44px] p-[3px] shadow-[0_40px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.08)]">
+
+              <!-- Side buttons (volume) -->
+              <div class="absolute -left-[3px] top-[88px] w-[3px] h-7 bg-[#2a2a2a] rounded-l-sm"></div>
+              <div class="absolute -left-[3px] top-[124px] w-[3px] h-7 bg-[#2a2a2a] rounded-l-sm"></div>
+              <!-- Power button -->
+              <div class="absolute -right-[3px] top-[108px] w-[3px] h-10 bg-[#2a2a2a] rounded-r-sm"></div>
+
+              <!-- Inner bezel -->
+              <div class="bg-[#1a1a1a] rounded-[42px] overflow-hidden" style="height:560px;">
+
+                <!-- Screen -->
+                <div class="bg-white h-full rounded-[40px] overflow-hidden flex flex-col" style="font-family:'Inter',sans-serif;">
+
+                  <!-- Status bar -->
+                  <div class="bg-white flex justify-between items-center px-6 pt-3 pb-1 shrink-0">
+                    <span style="font-size:10px;font-weight:600;color:#111;">9:41</span>
+                    <!-- Dynamic island -->
+                    <div class="bg-black rounded-full" style="width:72px;height:20px;"></div>
+                    <div class="flex items-center gap-1">
+                      <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><rect x="0" y="3" width="2" height="7" rx="0.5" fill="#111"/><rect x="3" y="2" width="2" height="8" rx="0.5" fill="#111"/><rect x="6" y="1" width="2" height="9" rx="0.5" fill="#111"/><rect x="9" y="0" width="2" height="10" rx="0.5" fill="#111"/></svg>
+                      <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><rect x="1" y="2.5" width="10" height="7" rx="1" stroke="#111" stroke-width="1.2"/><rect x="11.5" y="4" width="1.5" height="4" rx="0.75" fill="#111"/><rect x="2" y="3.5" width="8" height="5" rx="0.5" fill="#111"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- Webshop nav -->
+                  <div class="bg-white border-b border-gray-100 px-4 py-2.5 flex justify-between items-center shrink-0">
+                    <div class="flex items-center gap-1.5">
+                      <div class="w-5 h-5 bg-accent rounded-md flex items-center justify-center">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1h8M1 5h8M1 9h8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+                      </div>
+                      <span style="font-size:11px;font-weight:700;color:#111;letter-spacing:-0.3px;">ModaShop</span>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#666" stroke-width="1.3"/><path d="M9.5 9.5L12 12" stroke="#666" stroke-width="1.3" stroke-linecap="round"/></svg>
+                      <div class="relative">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3h10l-1.5 7H3.5L2 3z" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="12" r="1" fill="#111"/><circle cx="9" cy="12" r="1" fill="#111"/></svg>
+                        <div class="absolute -top-1 -right-1 bg-accent rounded-full flex items-center justify-center" style="width:9px;height:9px;">
+                          <span style="font-size:6px;color:white;font-weight:700;line-height:1;">2</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Hero banner -->
+                  <div class="shrink-0 relative overflow-hidden" style="height:110px;background:linear-gradient(135deg,#1a1a1a 0%,#333 50%,#FF4D00 120%);">
+                    <div class="absolute inset-0 flex flex-col justify-center px-4">
+                      <div style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:0.15em;text-transform:uppercase;font-family:'JetBrains Mono',monospace;">ÚJ KOLLEKCIÓ</div>
+                      <div style="font-size:17px;font-weight:700;color:white;line-height:1.2;margin-top:3px;">Nyári<br>Kollekció '26</div>
+                      <div class="mt-2 inline-flex items-center gap-1 bg-white rounded-full px-2.5 py-1" style="width:fit-content;">
+                        <span style="font-size:8px;font-weight:700;color:#111;text-transform:uppercase;letter-spacing:0.05em;">Vásárlás</span>
+                        <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M1.5 4h5M4 1.5L6.5 4 4 6.5" stroke="#111" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </div>
+                    </div>
+                    <!-- Decorative circles -->
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 opacity-20">
+                      <div class="w-16 h-16 rounded-full border border-white"></div>
+                      <div class="w-10 h-10 rounded-full border border-white absolute top-3 left-3"></div>
+                    </div>
+                  </div>
+
+                  <!-- AI recommendation badge -->
+                  <div class="shrink-0 mx-3 my-2 bg-accent/8 border border-accent/20 rounded-lg px-3 py-2 flex items-center gap-2">
+                    <div class="w-4 h-4 bg-accent rounded-full flex items-center justify-center shrink-0">
+                      <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1L5 3.5H7.5L5.5 5L6.2 7.5L4 6L1.8 7.5L2.5 5L0.5 3.5H3L4 1Z" fill="white"/></svg>
+                    </div>
+                    <div>
+                      <div style="font-size:8px;font-weight:700;color:#FF4D00;text-transform:uppercase;letter-spacing:0.08em;">AI Ajánló</div>
+                      <div style="font-size:8px;color:#555;">Neked valószínűleg tetszeni fog</div>
+                    </div>
+                  </div>
+
+                  <!-- Products label -->
+                  <div class="shrink-0 flex justify-between items-center px-3 mb-1.5">
+                    <span style="font-size:10px;font-weight:700;color:#111;">Termékek</span>
+                    <span style="font-size:9px;color:#999;">Mind →</span>
+                  </div>
+
+                  <!-- Product grid -->
+                  <div class="flex-1 overflow-hidden px-3 pb-2">
+                    <div class="grid grid-cols-2 gap-2 h-full">
+
+                      <!-- Product 1 -->
+                      <div class="bg-gray-50 rounded-xl overflow-hidden flex flex-col" style="border:1px solid #f0f0f0;">
+                        <div class="relative" style="height:80px;background:linear-gradient(135deg,#f5f0eb,#e8ddd0);">
+                          <div class="absolute inset-0 flex items-center justify-center opacity-30">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="2" stroke="#555" stroke-width="1.5"/><path d="M10 10h12M10 14h12M10 18h8" stroke="#555" stroke-width="1.5" stroke-linecap="round"/></svg>
+                          </div>
+                          <div class="absolute top-1.5 left-1.5 bg-accent text-white rounded px-1" style="font-size:7px;font-weight:700;">-15%</div>
+                        </div>
+                        <div class="p-1.5">
+                          <div style="font-size:8px;font-weight:600;color:#111;line-height:1.3;">Nyári ruha</div>
+                          <div style="font-size:8px;color:#999;margin-top:1px;">Fehér / S-XL</div>
+                          <div class="flex justify-between items-center mt-1.5">
+                            <span style="font-size:9px;font-weight:700;color:#111;">8 490 Ft</span>
+                            <div class="bg-accent rounded-full w-5 h-5 flex items-center justify-center">
+                              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1.5v5M1.5 4h5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Product 2 -->
+                      <div class="bg-gray-50 rounded-xl overflow-hidden flex flex-col" style="border:1px solid #f0f0f0;">
+                        <div class="relative" style="height:80px;background:linear-gradient(135deg,#e8f0eb,#d0e0d4);">
+                          <div class="absolute inset-0 flex items-center justify-center opacity-30">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M8 8h16v16H8z" stroke="#555" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16" cy="16" r="4" stroke="#555" stroke-width="1.5"/></svg>
+                          </div>
+                          <div class="absolute top-1.5 right-1.5">
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5C6 1.5 2 4 2 7a4 4 0 008 0c0-3-4-5.5-4-5.5z" stroke="#e55" stroke-width="1.2" fill="none"/></svg>
+                          </div>
+                        </div>
+                        <div class="p-1.5">
+                          <div style="font-size:8px;font-weight:600;color:#111;line-height:1.3;">Lenvászon táska</div>
+                          <div style="font-size:8px;color:#999;margin-top:1px;">Natúr / Zöld</div>
+                          <div class="flex justify-between items-center mt-1.5">
+                            <span style="font-size:9px;font-weight:700;color:#111;">12 990 Ft</span>
+                            <div class="bg-accent rounded-full w-5 h-5 flex items-center justify-center">
+                              <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><path d="M4 1.5v5M1.5 4h5" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Bottom nav bar -->
+                  <div class="shrink-0 bg-white border-t border-gray-100 flex justify-around items-center py-2.5 px-2">
+                    <div class="flex flex-col items-center gap-0.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L1 6v7h4V9h4v4h4V6L7 1z" fill="#FF4D00" stroke="#FF4D00" stroke-width="0.5" stroke-linejoin="round"/></svg>
+                      <span style="font-size:7px;color:#FF4D00;font-weight:600;">Főoldal</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-0.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="6" cy="6" r="4.5" stroke="#bbb" stroke-width="1.3"/><path d="M9.5 9.5L12 12" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
+                      <span style="font-size:7px;color:#bbb;">Keresés</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-0.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="4" width="10" height="8" rx="1" stroke="#bbb" stroke-width="1.3"/><path d="M5 4V3a2 2 0 014 0v1" stroke="#bbb" stroke-width="1.3"/></svg>
+                      <span style="font-size:7px;color:#bbb;">Rendelés</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-0.5">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="2.5" stroke="#bbb" stroke-width="1.3"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#bbb" stroke-width="1.3" stroke-linecap="round"/></svg>
+                      <span style="font-size:7px;color:#bbb;">Profil</span>
+                    </div>
+                  </div>
+
+                  <!-- Home indicator -->
+                  <div class="bg-white flex justify-center pb-1.5 pt-1 shrink-0">
+                    <div class="bg-black/20 rounded-full" style="width:36px;height:4px;"></div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         MEGOLDÁSOK — Tabbed services
+    ═══════════════════════════════════════════════ -->
+    <section id="megoldasok" class="py-28 bg-[#fafafa] border-t border-black/5 relative z-20 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-6">
+
+        <!-- Section label -->
+        <div class="text-center mb-16">
+          <span class="text-accent font-mono text-xs tracking-widest block mb-4 uppercase">/// megoldások</span>
+          <h2 class="font-display font-bold text-4xl md:text-5xl text-black scramble-text">
+            Találjuk meg a<br>megfelelő megoldást
+          </h2>
+        </div>
+
+        <!-- Two-column layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+          <!-- LEFT: Visual panel -->
+          <div class="relative order-2 lg:order-1" id="service-visual-wrap">
+
+            <!-- Base card glow -->
+            <div class="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-orange-100/20 rounded-3xl blur-2xl scale-90 pointer-events-none"></div>
+
+            <!-- Stacked mockup screens -->
+            <div class="relative h-[420px] lg:h-[480px]" id="service-visual">
+
+              <!-- SERVICE 1: Hirdetések — Ad mockup -->
+              <div class="service-panel active absolute inset-0" data-panel="0">
+                <div class="absolute bottom-0 left-0 w-[72%] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style="transform:rotate(-4deg) translateY(20px);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-4 space-y-2">
+                    <div class="h-3 bg-accent/20 rounded w-3/4"></div>
+                    <div class="h-24 bg-gradient-to-br from-accent/10 to-orange-50 rounded-lg flex items-center justify-center">
+                      <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="4" y="8" width="28" height="20" rx="2" stroke="#FF4D00" stroke-width="1.5"/><path d="M4 14h28" stroke="#FF4D00" stroke-width="1.5"/><rect x="8" y="18" width="8" height="6" rx="1" fill="#FF4D00" opacity="0.3"/><path d="M20 18h8M20 21h6M20 24h4" stroke="#FF4D00" stroke-width="1.2" stroke-linecap="round"/></svg>
+                    </div>
+                    <div class="h-2 bg-gray-100 rounded w-full"></div>
+                    <div class="h-2 bg-gray-100 rounded w-5/6"></div>
+                    <div class="h-7 bg-accent rounded-lg w-28 flex items-center justify-center"><div class="h-2 bg-white/60 rounded w-16"></div></div>
+                  </div>
+                </div>
+                <div class="absolute top-0 right-0 w-[65%] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style="transform:rotate(3deg);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-4 space-y-2">
+                    <div class="flex gap-2 mb-3"><div class="h-6 bg-accent/15 rounded-full w-16"></div><div class="h-6 bg-gray-100 rounded-full w-16"></div><div class="h-6 bg-gray-100 rounded-full w-16"></div></div>
+                    <div class="grid grid-cols-3 gap-2">
+                      <div class="h-14 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-center"><div class="text-center"><div class="font-bold text-black text-sm">4.2x</div><div class="text-[8px] text-gray-400">ROAS</div></div></div>
+                      <div class="h-14 bg-accent/5 rounded-lg border border-accent/20 flex items-center justify-center"><div class="text-center"><div class="font-bold text-accent text-sm">+68%</div><div class="text-[8px] text-gray-400">CTR</div></div></div>
+                      <div class="h-14 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-center"><div class="text-center"><div class="font-bold text-black text-sm">-31%</div><div class="text-[8px] text-gray-400">CPC</div></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SERVICE 2: Ügyfélkezelés AI -->
+              <div class="service-panel absolute inset-0" data-panel="1">
+                <div class="absolute bottom-0 left-0 w-[70%] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style="transform:rotate(-3deg) translateY(15px);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-4 space-y-2">
+                    <div class="flex items-center gap-2 mb-3"><div class="w-6 h-6 bg-accent rounded-full"></div><div class="h-3 bg-gray-200 rounded w-20"></div></div>
+                    <div class="space-y-2">
+                      <div class="flex gap-2"><div class="h-8 bg-gray-100 rounded-lg flex-1"></div><div class="h-8 w-8 bg-accent rounded-lg flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+                      <div class="bg-accent/5 border border-accent/15 rounded-lg p-2"><div class="h-2 bg-accent/20 rounded w-full mb-1"></div><div class="h-2 bg-accent/20 rounded w-4/5"></div></div>
+                      <div class="bg-gray-50 rounded-lg p-2"><div class="h-2 bg-gray-200 rounded w-full mb-1"></div><div class="h-2 bg-gray-200 rounded w-3/4"></div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="absolute top-4 right-0 w-[60%] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style="transform:rotate(2deg);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-4">
+                    <div class="text-[9px] font-mono text-accent tracking-widest mb-2">AI ÜGYFÉL ADATBÁZIS</div>
+                    <div class="space-y-1.5">
+                      <div class="flex gap-2 items-center"><div class="w-5 h-5 rounded-full bg-gray-200"></div><div class="flex-1"><div class="h-2 bg-gray-100 rounded w-full"></div></div><div class="text-[8px] text-green-500 font-bold">VIP</div></div>
+                      <div class="flex gap-2 items-center"><div class="w-5 h-5 rounded-full bg-accent/20"></div><div class="flex-1"><div class="h-2 bg-gray-100 rounded w-4/5"></div></div><div class="text-[8px] text-accent font-bold">HOT</div></div>
+                      <div class="flex gap-2 items-center"><div class="w-5 h-5 rounded-full bg-gray-200"></div><div class="flex-1"><div class="h-2 bg-gray-100 rounded w-3/4"></div></div><div class="text-[8px] text-gray-400 font-bold">NEW</div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SERVICE 3: Ügyviteli szoftver -->
+              <div class="service-panel absolute inset-0" data-panel="2">
+                <div class="absolute inset-4 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style="transform:rotate(-1deg);">
+                  <div class="h-8 bg-gray-900 flex items-center justify-between px-4"><div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-red-400"></div><div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div><div class="w-2.5 h-2.5 rounded-full bg-green-400"></div></div><div class="text-[9px] text-gray-400 font-mono">SmartBiz Pro</div><div></div></div>
+                  <div class="flex h-full">
+                    <div class="w-12 bg-gray-900 py-4 flex flex-col items-center gap-4">
+                      <div class="w-7 h-7 bg-accent/20 rounded-lg flex items-center justify-center"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="4" height="4" rx="0.5" fill="#FF4D00"/><rect x="8" y="2" width="4" height="4" rx="0.5" fill="#FF4D00" opacity="0.4"/><rect x="2" y="8" width="4" height="4" rx="0.5" fill="#FF4D00" opacity="0.4"/><rect x="8" y="8" width="4" height="4" rx="0.5" fill="#FF4D00" opacity="0.4"/></svg></div>
+                      <div class="w-7 h-7 bg-white/10 rounded-lg"></div>
+                      <div class="w-7 h-7 bg-white/10 rounded-lg"></div>
+                    </div>
+                    <div class="flex-1 p-4 space-y-3 bg-gray-50">
+                      <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-white rounded-lg p-2 border border-gray-100"><div class="text-[9px] text-gray-400 mb-1">Bevétel</div><div class="font-bold text-black text-sm">8,4M Ft</div></div>
+                        <div class="bg-white rounded-lg p-2 border border-accent/20"><div class="text-[9px] text-accent mb-1">Rendelés</div><div class="font-bold text-accent text-sm">342</div></div>
+                        <div class="bg-white rounded-lg p-2 border border-gray-100"><div class="text-[9px] text-gray-400 mb-1">Ügyfél</div><div class="font-bold text-black text-sm">1,2k</div></div>
+                      </div>
+                      <div class="bg-white rounded-lg p-3 border border-gray-100">
+                        <div class="text-[9px] text-gray-400 mb-2">HETI FORGALOM</div>
+                        <div class="flex items-end gap-1 h-12">
+                          <div class="flex-1 bg-gray-100 rounded-sm" style="height:40%"></div>
+                          <div class="flex-1 bg-gray-100 rounded-sm" style="height:60%"></div>
+                          <div class="flex-1 bg-accent rounded-sm" style="height:100%"></div>
+                          <div class="flex-1 bg-gray-100 rounded-sm" style="height:75%"></div>
+                          <div class="flex-1 bg-gray-100 rounded-sm" style="height:55%"></div>
+                          <div class="flex-1 bg-gray-100 rounded-sm" style="height:80%"></div>
+                          <div class="flex-1 bg-gray-100 rounded-sm" style="height:65%"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SERVICE 4: Automatizáció -->
+              <div class="service-panel absolute inset-0" data-panel="3">
+                <div class="absolute bottom-0 left-0 w-[68%] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style="transform:rotate(-3deg) translateY(10px);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-4">
+                    <div class="text-[9px] font-mono text-accent tracking-widest mb-3">N8N WORKFLOW</div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <div class="h-8 px-2 bg-gray-900 rounded text-[8px] text-white flex items-center gap-1"><svg width="8" height="8" viewBox="0 0 8 8" fill="none"><circle cx="4" cy="4" r="3" stroke="#FF4D00" stroke-width="1"/></svg>Trigger</div>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="#FF4D00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <div class="h-8 px-2 bg-accent/10 border border-accent/30 rounded text-[8px] text-accent flex items-center">AI</div>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="#FF4D00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <div class="h-8 px-2 bg-gray-100 rounded text-[8px] text-gray-600 flex items-center">Email</div>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="#FF4D00" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <div class="h-8 px-2 bg-green-50 border border-green-200 rounded text-[8px] text-green-600 flex items-center">✓ Kész</div>
+                    </div>
+                    <div class="mt-3 space-y-1.5">
+                      <div class="flex justify-between text-[8px]"><span class="text-gray-400">Futott ma</span><span class="font-bold text-black">1 247×</span></div>
+                      <div class="flex justify-between text-[8px]"><span class="text-gray-400">Megtakarított idő</span><span class="font-bold text-accent">~8 óra</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="absolute top-4 right-0 w-[58%] bg-white rounded-2xl shadow-xl border border-gray-100 p-4" style="transform:rotate(2deg);">
+                  <div class="text-[9px] font-mono text-gray-400 mb-2">AKTÍV AUTOMATIZÁCIÓK</div>
+                  <div class="space-y-2">
+                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div><div class="text-[9px] text-black">Kosár elhagyás email</div></div>
+                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div><div class="text-[9px] text-black">VIP ügyfélazonosítás</div></div>
+                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div><div class="text-[9px] text-black">Készlet riasztás</div></div>
+                    <div class="flex items-center gap-2"><div class="w-1.5 h-1.5 bg-yellow-400 rounded-full"></div><div class="text-[9px] text-gray-400">Upsell ajánló</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SERVICE 5: AI weboldalak -->
+              <div class="service-panel absolute inset-0" data-panel="4">
+                <div class="absolute bottom-0 left-0 w-[72%] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style="transform:rotate(-4deg) translateY(15px);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-3 space-y-2">
+                    <div class="h-3 bg-gray-900 rounded w-1/3"></div>
+                    <div class="h-14 bg-gradient-to-r from-gray-900 to-gray-800 rounded-lg flex items-center px-3 gap-2">
+                      <div class="space-y-1 flex-1"><div class="h-2 bg-white/30 rounded w-3/4"></div><div class="h-1.5 bg-white/15 rounded w-1/2"></div></div>
+                      <div class="w-12 h-8 bg-accent rounded"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                      <div class="h-10 bg-gray-50 rounded border border-gray-100 p-1.5"><div class="h-1.5 bg-gray-200 rounded w-3/4 mb-1"></div><div class="h-1.5 bg-gray-100 rounded w-full"></div></div>
+                      <div class="h-10 bg-accent/5 rounded border border-accent/20 p-1.5"><div class="h-1.5 bg-accent/30 rounded w-3/4 mb-1"></div><div class="h-1.5 bg-accent/15 rounded w-full"></div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="absolute top-4 right-0 w-[58%] bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden" style="transform:rotate(3deg);">
+                  <div class="h-6 bg-gray-900 flex items-center px-3 gap-1.5"><div class="w-2 h-2 rounded-full bg-red-400"></div><div class="w-2 h-2 rounded-full bg-yellow-400"></div><div class="w-2 h-2 rounded-full bg-green-400"></div></div>
+                  <div class="p-3">
+                    <div class="text-[9px] font-mono text-accent mb-2">AI ASSZISZTENS</div>
+                    <div class="space-y-1.5">
+                      <div class="bg-gray-50 rounded p-1.5"><div class="h-1.5 bg-gray-200 rounded w-4/5"></div></div>
+                      <div class="bg-accent/8 border border-accent/15 rounded p-1.5"><div class="h-1.5 bg-accent/30 rounded w-full mb-1"></div><div class="h-1.5 bg-accent/20 rounded w-3/4"></div></div>
+                      <div class="bg-gray-50 rounded p-1.5"><div class="h-1.5 bg-gray-200 rounded w-2/3"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- RIGHT: Tabs + content -->
+          <div class="order-1 lg:order-2">
+
+            <!-- Tab buttons -->
+            <div class="flex flex-wrap gap-2 mb-8" id="service-tabs">
+              <button class="service-tab active px-4 py-2 rounded-full text-sm font-bold transition-all border" data-tab="0">
+                Hirdetések
+              </button>
+              <button class="service-tab px-4 py-2 rounded-full text-sm font-bold transition-all border" data-tab="1">
+                Ügyfélkezelés AI
+              </button>
+              <button class="service-tab px-4 py-2 rounded-full text-sm font-bold transition-all border" data-tab="2">
+                Ügyviteli szoftver
+              </button>
+              <button class="service-tab px-4 py-2 rounded-full text-sm font-bold transition-all border" data-tab="3">
+                Automatizáció
+              </button>
+              <button class="service-tab px-4 py-2 rounded-full text-sm font-bold transition-all border" data-tab="4">
+                AI weboldal
+              </button>
+            </div>
+
+            <!-- Dynamic content -->
+            <div id="service-content">
+
+              <div class="service-desc" data-desc="0">
+                <div class="font-mono text-xs text-accent tracking-widest uppercase mb-3">/ Hirdetések készítése</div>
+                <h3 class="font-display font-bold text-3xl text-black mb-4 leading-tight">AI-alapú hirdetések,<br>amelyek tényleg hoznak</h3>
+                <p class="text-gray-600 leading-relaxed mb-6 font-light">
+                  Nem kitalálunk szövegeket — elemezzük a versenytársaidat, a termékedet és a célközönségedet, majd AI-jal generálunk és tesztelünk hirdetésvariánsokat. Az eredmény: <span class="text-black font-semibold">magasabb ROAS, alacsonyabb CPC.</span>
+                </p>
+                <ul class="space-y-3 mb-8">
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Meta &amp; Google hirdetés szövegek AI-jal</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>A/B tesztelés automatizálva</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Remarketing szegmentáció</li>
+                </ul>
+              </div>
+
+              <div class="service-desc hidden" data-desc="1">
+                <div class="font-mono text-xs text-accent tracking-widest uppercase mb-3">/ Ügyfélkezelés AI adatbázissal</div>
+                <h3 class="font-display font-bold text-3xl text-black mb-4 leading-tight">Minden ügyfél adatod<br>egy helyen, AI-jal</h3>
+                <p class="text-gray-600 leading-relaxed mb-6 font-light">
+                  Összegyűjtjük a vásárlási, viselkedési és kommunikációs adatokat, és egy AI-alapú CRM-rendszerbe szervezzük. Az eredmény: <span class="text-black font-semibold">automatikus szegmentáció, személyre szabott ajánlatok.</span>
+                </p>
+                <ul class="space-y-3 mb-8">
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>AI-alapú ügyfélszegmentáció</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Automatikus follow-up rendszer</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Churn előrejelzés és megtartás</li>
+                </ul>
+              </div>
+
+              <div class="service-desc hidden" data-desc="2">
+                <div class="font-mono text-xs text-accent tracking-widest uppercase mb-3">/ Ügyviteli szoftver</div>
+                <h3 class="font-display font-bold text-3xl text-black mb-4 leading-tight">Saját üzleti szoftvered,<br>AI-jal integrálva</h3>
+                <p class="text-gray-600 leading-relaxed mb-6 font-light">
+                  Rendeléskezelés, készletnyilvántartás, számlázás, riporting — mind egy helyen, a te folyamataidra szabva. Nem általános szoftver: <span class="text-black font-semibold">pontosan azt csinálja, amire neked szükséged van.</span>
+                </p>
+                <ul class="space-y-3 mb-8">
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Rendelés &amp; készletkezelő dashboard</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Valós idejű üzleti riporting</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Shoprenter / WooCommerce integráció</li>
+                </ul>
+              </div>
+
+              <div class="service-desc hidden" data-desc="3">
+                <div class="font-mono text-xs text-accent tracking-widest uppercase mb-3">/ Automatizációk</div>
+                <h3 class="font-display font-bold text-3xl text-black mb-4 leading-tight">Automatizáld a<br>repetitív munkát</h3>
+                <p class="text-gray-600 leading-relaxed mb-6 font-light">
+                  n8n és AI segítségével összekapcsoljuk a rendszereidet, és automatizáljuk a visszatérő feladatokat. Az eredmény: <span class="text-black font-semibold">napi 2-8 óra megtakarítás, emberi hiba nélkül.</span>
+                </p>
+                <ul class="space-y-3 mb-8">
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Email &amp; SMS workflow automatizálás</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Rendelés- és logisztika automata</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>API integrációk bármilyen platformmal</li>
+                </ul>
+              </div>
+
+              <div class="service-desc hidden" data-desc="4">
+                <div class="font-mono text-xs text-accent tracking-widest uppercase mb-3">/ AI támogatott weboldal</div>
+                <h3 class="font-display font-bold text-3xl text-black mb-4 leading-tight">Weboldal, ami maga<br>dolgozik helyetted</h3>
+                <p class="text-gray-600 leading-relaxed mb-6 font-light">
+                  AI chatbot, személyre szabott tartalmak, automatikus termékajánlás — a weboldalad nem csak megjelenít, hanem <span class="text-black font-semibold">konvertál és tanul minden látogatóból.</span>
+                </p>
+                <ul class="space-y-3 mb-8">
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Beágyazott AI chatbot &amp; asszisztens</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Dinamikus, személyre szabott tartalom</li>
+                  <li class="flex gap-3 items-start text-sm text-gray-600"><span class="text-accent mt-0.5 shrink-0">✓</span>Konverzió-optimalizált landing page-ek</li>
+                </ul>
+              </div>
+
+            </div>
+
+            <!-- CTA -->
+            <div class="flex items-center gap-4 flex-wrap">
+              <button class="bg-accent text-white px-8 py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-all btn-magnetic rounded flex items-center gap-3 shadow-lg shadow-accent/20">
+                VEDD FEL VELÜNK A KAPCSOLATOT
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <span class="text-xs text-gray-400 font-light">Ne aggódj, ha nem tudod melyikre van szükséged — segítünk.</span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+    (function() {
+      var tabs   = document.querySelectorAll('.service-tab');
+      var panels = document.querySelectorAll('.service-panel');
+      var descs  = document.querySelectorAll('.service-desc');
+
+      function switchTo(idx) {
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tabs[idx].classList.add('active');
+        panels.forEach(function(p) { p.classList.remove('active'); });
+        panels[idx].classList.add('active');
+        descs.forEach(function(d) { d.classList.add('hidden'); });
+        descs[idx].classList.remove('hidden');
+      }
+
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          switchTo(parseInt(tab.dataset.tab));
+        });
+      });
+    })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════
+         VISSZAJELZÉSEK
+    ═══════════════════════════════════════════════ -->
+    <section id="visszajelzesek" class="py-32 px-6 bg-[#0a0a0a] relative z-20 overflow-hidden">
+
+      <!-- Subtle grid overlay -->
+      <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+
+      <div class="max-w-7xl mx-auto relative z-10">
+
+        <!-- Header -->
+        <div class="text-center mb-16">
+          <span class="text-accent font-mono text-xs tracking-widest block mb-4 uppercase">/// visszajelzések</span>
+          <h2 class="font-display font-bold text-4xl md:text-5xl text-white scramble-text">
+            Ügyfeleink mondták
+          </h2>
+          <p class="text-gray-500 mt-4 text-lg font-light max-w-xl mx-auto">
+            Webshop-tulajdonosok, akik már megtették az első lépést az AI felé.
+          </p>
+        </div>
+
+        <!-- 3 cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <!-- Card 1 -->
+          <div class="relative rounded-2xl p-8 flex flex-col spotlight-card" style="background:#141414;border:1px solid rgba(255,255,255,0.07);">
+            <!-- Big quote mark -->
+            <div class="font-display font-black text-[80px] leading-none text-white/5 select-none absolute top-4 right-6" aria-hidden="true">"</div>
+            <!-- Quote icon -->
+            <div class="w-9 h-9 bg-accent/10 border border-accent/20 rounded-full flex items-center justify-center mb-5 shrink-0">
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M0 10V6.4C0 2.867 1.733 0.8 5.2 0V2C3.6 2.533 2.8 3.6 2.8 5.2H5.2V10H0ZM8.8 10V6.4C8.8 2.867 10.533 0.8 14 0V2C12.4 2.533 11.6 3.6 11.6 5.2H14V10H8.8Z" fill="#FF4D00"/></svg>
+            </div>
+            <p class="text-white/80 text-base leading-relaxed font-light flex-1 mb-6">
+              "Az AI audit után azonnal látszott, hogy az email automatizáció hiánya okozza a bevételkiesés nagy részét. Két héten belül futott az első flow, és az eredmény azonnal érezhető volt."
+            </p>
+            <div class="mb-5">
+              <span class="font-mono text-[10px] text-accent tracking-widest uppercase">/ Divatwebshop, Shoprenter</span>
+            </div>
+            <div class="flex items-center gap-3 pt-4 border-t border-white/5">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center shrink-0 border border-white/10">
+                <span class="font-display font-bold text-white text-sm">KA</span>
+              </div>
+              <div>
+                <div class="font-bold text-white text-sm">Kovács Anna</div>
+                <div class="text-gray-500 text-xs font-mono">StyleStore.hu</div>
+              </div>
+              <div class="ml-auto flex gap-0.5">
+                <span class="text-accent text-xs">★★★★★</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 — accent border, slightly elevated -->
+          <div class="relative rounded-2xl p-8 flex flex-col spotlight-card md:-translate-y-3" style="background:#141414;border:1px solid rgba(255,77,0,0.3);box-shadow:0 0 40px rgba(255,77,0,0.08);">
+            <div class="font-display font-black text-[80px] leading-none text-white/5 select-none absolute top-4 right-6" aria-hidden="true">"</div>
+            <div class="w-9 h-9 bg-accent/10 border border-accent/20 rounded-full flex items-center justify-center mb-5 shrink-0">
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M0 10V6.4C0 2.867 1.733 0.8 5.2 0V2C3.6 2.533 2.8 3.6 2.8 5.2H5.2V10H0ZM8.8 10V6.4C8.8 2.867 10.533 0.8 14 0V2C12.4 2.533 11.6 3.6 11.6 5.2H14V10H8.8Z" fill="#FF4D00"/></svg>
+            </div>
+            <p class="text-white text-base leading-relaxed font-light flex-1 mb-6">
+              "Korábban naponta 2-3 órát töltöttem ügyfélszolgálattal. Az AI agent bevezetése után ez tizedére csökkent — az összetett kérdések maradnak nekem, a rutint kezeli a rendszer."
+            </p>
+            <div class="mb-5">
+              <span class="font-mono text-[10px] text-accent tracking-widest uppercase">/ Elektronikai webshop, WooCommerce</span>
+            </div>
+            <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-accent/30 to-orange-900/50 flex items-center justify-center shrink-0 border border-accent/20">
+                <span class="font-display font-bold text-white text-sm">NB</span>
+              </div>
+              <div>
+                <div class="font-bold text-white text-sm">Nagy Bence</div>
+                <div class="text-gray-500 text-xs font-mono">TechDeal.hu</div>
+              </div>
+              <div class="ml-auto flex gap-0.5">
+                <span class="text-accent text-xs">★★★★★</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="relative rounded-2xl p-8 flex flex-col spotlight-card" style="background:#141414;border:1px solid rgba(255,255,255,0.07);">
+            <div class="font-display font-black text-[80px] leading-none text-white/5 select-none absolute top-4 right-6" aria-hidden="true">"</div>
+            <div class="w-9 h-9 bg-accent/10 border border-accent/20 rounded-full flex items-center justify-center mb-5 shrink-0">
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M0 10V6.4C0 2.867 1.733 0.8 5.2 0V2C3.6 2.533 2.8 3.6 2.8 5.2H5.2V10H0ZM8.8 10V6.4C8.8 2.867 10.533 0.8 14 0V2C12.4 2.533 11.6 3.6 11.6 5.2H14V10H8.8Z" fill="#FF4D00"/></svg>
+            </div>
+            <p class="text-white/80 text-base leading-relaxed font-light flex-1 mb-6">
+              "A termékleírás-generáló rendszer 600 termékünket dolgozta fel 3 nap alatt. Korábban ez fél éves munka lett volna. A SEO forgalmunk 3 hónap alatt 40%-kal nőtt."
+            </p>
+            <div class="mb-5">
+              <span class="font-mono text-[10px] text-accent tracking-widest uppercase">/ Lakberendezési webshop</span>
+            </div>
+            <div class="flex items-center gap-3 pt-4 border-t border-white/5">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center shrink-0 border border-white/10">
+                <span class="font-display font-bold text-white text-sm">VE</span>
+              </div>
+              <div>
+                <div class="font-bold text-white text-sm">Varga Edit</div>
+                <div class="text-gray-500 text-xs font-mono">OtthonDeko.hu</div>
+              </div>
+              <div class="ml-auto flex gap-0.5">
+                <span class="text-accent text-xs">★★★★★</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom trust bar -->
+        <div class="mt-16 flex flex-wrap justify-center items-center gap-10 opacity-40">
+          <div class="text-center">
+            <div class="font-display font-bold text-3xl text-white">40+</div>
+            <div class="font-mono text-[10px] text-gray-500 tracking-widest uppercase mt-1">Webshop ügyfél</div>
+          </div>
+          <div class="w-px h-8 bg-white/10"></div>
+          <div class="text-center">
+            <div class="font-display font-bold text-3xl text-white">4,9/5</div>
+            <div class="font-mono text-[10px] text-gray-500 tracking-widest uppercase mt-1">Átlagos értékelés</div>
+          </div>
+          <div class="w-px h-8 bg-white/10"></div>
+          <div class="text-center">
+            <div class="font-display font-bold text-3xl text-white">2-4 hét</div>
+            <div class="font-mono text-[10px] text-gray-500 tracking-widest uppercase mt-1">Első eredmény</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         FOLYAMAT — Sticky bal + scroll steps
+    ═══════════════════════════════════════════════ -->
+    <section id="folyamat" class="py-24 bg-white relative z-20 border-t border-black/5">
+      <div class="max-w-[1400px] mx-auto px-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 relative">
+
+          <!-- LEFT: Sticky orbiting visual -->
+          <div class="order-2 lg:order-1 relative">
+            <div class="sticky top-24 w-full aspect-square max-h-[60vh] bg-white border border-gray-100 rounded-2xl overflow-hidden flex items-center justify-center p-10 group shadow-2xl">
+
+              <!-- Grid bg -->
+              <div class="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.025)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+
+              <!-- Central node -->
+              <div class="relative w-36 h-36 border border-accent/30 rounded-full flex items-center justify-center z-10 shadow-[0_0_50px_rgba(255,77,0,0.15)] bg-white/80 backdrop-blur-sm">
+                <div class="w-28 h-28 bg-accent/5 rounded-full animate-pulse absolute"></div>
+                <div class="text-black font-mono text-[10px] tracking-[0.15em] text-center font-bold relative z-10 leading-5">
+                  AI<br>RENDSZER
+                </div>
+              </div>
+
+              <!-- Inner orbit -->
+              <div class="absolute w-[55%] h-[55%] border border-black/5 rounded-full animate-spin-slow pointer-events-none">
+                <div class="w-10 h-10 bg-white border border-gray-200 shadow-md rounded-full absolute -top-5 left-1/2 -translate-x-1/2 flex items-center justify-center">
+                  <span class="iconify text-accent text-sm" data-icon="lucide:cpu"></span>
+                </div>
+              </div>
+
+              <!-- Middle orbit -->
+              <div class="absolute w-[75%] h-[75%] border border-black/5 rounded-full animate-reverse-spin pointer-events-none">
+                <div class="w-10 h-10 bg-accent rounded-full absolute -top-5 left-1/2 -translate-x-1/2 flex items-center justify-center text-white">
+                  <span class="iconify text-sm" data-icon="lucide:zap"></span>
+                </div>
+              </div>
+
+              <!-- Outer orbit -->
+              <div class="absolute w-[93%] h-[93%] border border-black/5 rounded-full pointer-events-none" style="animation: spin 35s linear infinite;">
+                <div class="w-10 h-10 bg-white border border-gray-200 shadow-md rounded-full absolute -top-5 left-1/2 -translate-x-1/2 flex items-center justify-center">
+                  <span class="iconify text-black text-sm" data-icon="lucide:trending-up"></span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- RIGHT: Scroll steps -->
+          <div class="order-1 lg:order-2 py-20 pb-0">
+            <span class="text-accent font-mono text-xs tracking-widest block mb-10 uppercase">/// az ai folyamat</span>
+
+            <div class="step-item mb-48 opacity-30 transition-opacity duration-500">
+              <div class="font-mono text-xs text-gray-400 tracking-widest mb-3 uppercase">Lépés 01</div>
+              <h3 class="text-4xl font-display font-bold mb-4 text-black">AI Audit</h3>
+              <p class="text-xl text-gray-600 leading-relaxed font-light">
+                Feltérképezzük a webshopod összes bevételi veszteségpontját. Megnézzük az analitikát, a vásárlói útvonalat, az automatizálási réseket — és egy prioritizált roadmapet adunk.
+              </p>
+            </div>
+
+            <div class="step-item mb-48 opacity-30 transition-opacity duration-500">
+              <div class="font-mono text-xs text-gray-400 tracking-widest mb-3 uppercase">Lépés 02</div>
+              <h3 class="text-4xl font-display font-bold mb-4 text-black">AI Implementáció</h3>
+              <p class="text-xl text-gray-600 leading-relaxed font-light">
+                Beépítjük a választott AI megoldásokat. Chatbot, személyre szabás, automatikus email flow — mindent a te platformodra (Shoprenter, WooCommerce) konfigurálva, tesztelve.
+              </p>
+            </div>
+
+            <div class="step-item opacity-30 transition-opacity duration-500">
+              <div class="font-mono text-xs text-gray-400 tracking-widest mb-3 uppercase">Lépés 03</div>
+              <h3 class="text-4xl font-display font-bold mb-4 text-black">Mérés és Növekedés</h3>
+              <p class="text-xl text-gray-600 leading-relaxed font-light">
+                KPI dashboardon követjük az eredményeket hetente. Optimalizálunk, iterálunk. A bevételed folyamatosan nő, te a termékedre és az ügyfeleidre koncentrálsz.
+              </p>
+            </div>
+
+            <div class="h-40"></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         FOLYAMAT + FORM SZEKCIÓ
+    ═══════════════════════════════════════════════ -->
+    <section id="jelentkezes" class="py-32 px-6 bg-[#fafafa] border-t border-black/5 relative z-20">
+      <div class="max-w-4xl mx-auto">
+
+        <!-- Header -->
+        <div class="text-center mb-14">
+          <span class="text-accent font-mono text-xs tracking-widest block mb-4 uppercase">/// következő lépés</span>
+          <h2 class="font-display font-bold text-4xl md:text-5xl text-black leading-tight scramble-text">
+            Mi fog történni a<br>jelentkezésed után?
+          </h2>
+          <p class="mt-5 text-gray-500 text-lg font-light">
+            Első körben egy <span class="text-black font-semibold">kötetlen, díjmentes, 30 perces konzultációra</span> invitálunk.
+          </p>
+        </div>
+
+        <!-- 3 lépés -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14 relative">
+
+          <!-- Összekötő vonal desktop-on -->
+          <div class="hidden md:block absolute top-10 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent z-0"></div>
+
+          <!-- Lépés 1 -->
+          <div class="relative z-10 bg-white border border-gray-100 rounded-2xl p-7 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-accent/20 transition-all">
+            <div class="w-16 h-16 bg-accent/5 border border-accent/15 rounded-2xl flex items-center justify-center mb-5">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect x="4" y="5" width="20" height="18" rx="2" stroke="#FF4D00" stroke-width="1.8"/>
+                <path d="M4 10h20" stroke="#FF4D00" stroke-width="1.8"/>
+                <path d="M9 3v4M19 3v4" stroke="#FF4D00" stroke-width="1.8" stroke-linecap="round"/>
+                <rect x="8" y="14" width="4" height="4" rx="0.5" fill="#FF4D00"/>
+                <rect x="16" y="14" width="4" height="4" rx="0.5" fill="#FF4D00" opacity="0.4"/>
+              </svg>
+            </div>
+            <div class="font-mono text-[10px] text-accent tracking-widest uppercase mb-2">01</div>
+            <h3 class="font-display font-bold text-base text-black mb-3">Időpontot foglalsz</h3>
+            <p class="text-sm text-gray-500 leading-relaxed font-light">Az alábbi űrlap kitöltése után lesz lehetőséged időpontot foglalni — átbeszéljük a helyzetedet és a lehetőségeket.</p>
+          </div>
+
+          <!-- Lépés 2 -->
+          <div class="relative z-10 bg-white border border-gray-100 rounded-2xl p-7 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-accent/20 transition-all">
+            <div class="w-16 h-16 bg-accent/5 border border-accent/15 rounded-2xl flex items-center justify-center mb-5">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <circle cx="14" cy="10" r="4" stroke="#FF4D00" stroke-width="1.8"/>
+                <path d="M6 22c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#FF4D00" stroke-width="1.8" stroke-linecap="round"/>
+                <circle cx="21" cy="10" r="3" stroke="#FF4D00" stroke-width="1.5" opacity="0.4"/>
+                <path d="M24 18c0-2.5-1.343-4.686-3.333-5.857" stroke="#FF4D00" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+              </svg>
+            </div>
+            <div class="font-mono text-[10px] text-accent tracking-widest uppercase mb-2">02</div>
+            <h3 class="font-display font-bold text-base text-black mb-3">Felmérjük a projektedet</h3>
+            <p class="text-sm text-gray-500 leading-relaxed font-light">A megbeszélt időpontban telefonon vagy videóhívásban tanácsadó kollégánkkal egyeztetünk az elképzeléseidről.</p>
+          </div>
+
+          <!-- Lépés 3 -->
+          <div class="relative z-10 bg-white border border-gray-100 rounded-2xl p-7 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-accent/20 transition-all">
+            <div class="w-16 h-16 bg-accent/5 border border-accent/15 rounded-2xl flex items-center justify-center mb-5">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                <rect x="3" y="6" width="22" height="16" rx="2" stroke="#FF4D00" stroke-width="1.8"/>
+                <path d="M3 10l11 7 11-7" stroke="#FF4D00" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="font-mono text-[10px] text-accent tracking-widest uppercase mb-2">03</div>
+            <h3 class="font-display font-bold text-base text-black mb-3">Küldjük az ajánlatot</h3>
+            <p class="text-sm text-gray-500 leading-relaxed font-light">Jellemzően már 1–2 napon belül előtted lehet a cégedre szabott ajánlat — elfogadás után szerződéskötés következik.</p>
+          </div>
+
+        </div>
+
+        <!-- Elválasztó -->
+        <div class="flex items-center gap-6 mb-10">
+          <div class="flex-1 h-px bg-gradient-to-r from-transparent to-black/10"></div>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <span class="w-2 h-2 bg-accent rounded-full animate-pulse inline-block"></span>
+            <span class="font-display font-bold text-xl text-black">Már csak 1 lépés</span>
+          </div>
+          <div class="flex-1 h-px bg-gradient-to-l from-transparent to-black/10"></div>
+        </div>
+
+        <!-- FORM -->
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+
+          <!-- Form progress bar -->
+          <div class="h-1 bg-gray-100">
+            <div class="h-1 bg-accent transition-all duration-500" id="form-progress" style="width:33%"></div>
+          </div>
+
+          <!-- Step 1 -->
+          <div class="p-8 md:p-10" id="form-step-1">
+            <p class="font-display font-semibold text-black text-lg mb-6">Melyik írja le legjobban a webshopod?<span class="text-accent">*</span></p>
+            <div class="space-y-3" id="q1-options">
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 hover:bg-accent/2 cursor-pointer transition-all group form-option" data-q="1">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <div><span class="font-semibold text-black text-sm">Shoprenter webshop</span><span class="text-gray-400 text-xs block font-mono mt-0.5">Magyar platform, magyar ügyfélkör</span></div>
+              </label>
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 hover:bg-accent/2 cursor-pointer transition-all group form-option" data-q="1">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <div><span class="font-semibold text-black text-sm">WooCommerce webshop</span><span class="text-gray-400 text-xs block font-mono mt-0.5">WordPress alapú, rugalmas platform</span></div>
+              </label>
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 hover:bg-accent/2 cursor-pointer transition-all group form-option" data-q="1">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <div><span class="font-semibold text-black text-sm">Egyedi / más platform</span><span class="text-gray-400 text-xs block font-mono mt-0.5">Magento, Shopify, egyedi fejlesztés</span></div>
+              </label>
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 hover:bg-accent/2 cursor-pointer transition-all group form-option" data-q="1">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <div><span class="font-semibold text-black text-sm">Még nincs webshopom</span><span class="text-gray-400 text-xs block font-mono mt-0.5">Tervezem az indítást</span></div>
+              </label>
+            </div>
+            <button onclick="nextStep(2)" class="mt-8 w-full md:w-auto bg-accent text-white px-10 py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-all btn-magnetic flex items-center justify-center gap-3 rounded">
+              KÖVETKEZŐ <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+
+          <!-- Step 2 (hidden) -->
+          <div class="p-8 md:p-10 hidden" id="form-step-2">
+            <p class="font-display font-semibold text-black text-lg mb-6">Mi a legnagyobb kihívásod most?<span class="text-accent">*</span></p>
+            <div class="space-y-3">
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 cursor-pointer transition-all group form-option" data-q="2">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <span class="font-semibold text-black text-sm">Csökkenő forgalom / Temu hatás</span>
+              </label>
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 cursor-pointer transition-all group form-option" data-q="2">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <span class="font-semibold text-black text-sm">Magas ügyfélszolgálati terhek</span>
+              </label>
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 cursor-pointer transition-all group form-option" data-q="2">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <span class="font-semibold text-black text-sm">Alacsony konverzió / kosár elhagyás</span>
+              </label>
+              <label class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:border-accent/30 cursor-pointer transition-all group form-option" data-q="2">
+                <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0 group-hover:border-accent transition-colors radio-circle"><div class="w-2.5 h-2.5 rounded-full bg-accent scale-0 transition-transform radio-dot"></div></div>
+                <span class="font-semibold text-black text-sm">Manuális, időigényes folyamatok</span>
+              </label>
+            </div>
+            <div class="flex gap-3 mt-8">
+              <button onclick="nextStep(1)" class="px-6 py-4 border border-gray-200 text-gray-500 font-bold text-sm uppercase tracking-wider hover:border-black hover:text-black transition-all rounded flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M7 11L3 7l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> VISSZA
+              </button>
+              <button onclick="nextStep(3)" class="flex-1 md:flex-none bg-accent text-white px-10 py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-all btn-magnetic flex items-center justify-center gap-3 rounded">
+                KÖVETKEZŐ <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3 (hidden) -->
+          <div class="p-8 md:p-10 hidden" id="form-step-3">
+            <p class="font-display font-semibold text-black text-lg mb-2">Hova küldjük az ingyenes AI audit eredményét?</p>
+            <p class="text-gray-400 text-sm font-light mb-6">48 órán belül visszajelzünk — spam nélkül.</p>
+            <div class="space-y-4">
+              <div>
+                <label class="font-mono text-[10px] text-gray-400 tracking-widest uppercase block mb-2">Neved</label>
+                <input type="text" placeholder="pl. Kovács Anna" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition-colors text-black placeholder-gray-300">
+              </div>
+              <div>
+                <label class="font-mono text-[10px] text-gray-400 tracking-widest uppercase block mb-2">Email cím</label>
+                <input type="email" placeholder="anna@webshopod.hu" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition-colors text-black placeholder-gray-300">
+              </div>
+              <div>
+                <label class="font-mono text-[10px] text-gray-400 tracking-widest uppercase block mb-2">Webshop URL</label>
+                <input type="url" placeholder="https://webshopod.hu" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition-colors text-black placeholder-gray-300">
+              </div>
+            </div>
+            <div class="mt-6 flex flex-wrap gap-4">
+              <div class="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3.5V7c0 3 2.333 5.167 5 6 2.667-.833 5-3 5-6V3.5L7 1z" stroke="#22c55e" stroke-width="1.3" stroke-linejoin="round"/></svg><span>SSL védett</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Spam-mentes</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#22c55e" stroke-width="1.3"/><path d="M7 4v3.5L9 9" stroke="#22c55e" stroke-width="1.3" stroke-linecap="round"/></svg><span>48 órán belül válasz</span>
+              </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+              <button onclick="nextStep(2)" class="px-6 py-4 border border-gray-200 text-gray-500 font-bold text-sm uppercase tracking-wider hover:border-black hover:text-black transition-all rounded flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M11 7H3M7 11L3 7l4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> VISSZA
+              </button>
+              <button onclick="submitForm()" class="flex-1 md:flex-none bg-accent text-white px-10 py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-all btn-magnetic flex items-center justify-center gap-3 rounded">
+                INGYENES AUDIT KÉRÉSE <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4 — Success (hidden) -->
+          <div class="p-8 md:p-10 hidden text-center" id="form-step-4">
+            <div class="w-16 h-16 bg-green-50 border border-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6.5 6.5L23 8" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3 class="font-display font-bold text-2xl text-black mb-2">Megkaptuk a kérésed!</h3>
+            <p class="text-gray-500 font-light leading-relaxed max-w-md mx-auto">48 órán belül keresünk emailben az ingyenes AI audittal.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════════ -->
+  <footer class="bg-black pt-32 pb-10 px-6 border-t border-white/10 relative overflow-hidden">
+
+    <!-- Ghost watermark -->
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-none select-none pointer-events-none opacity-[0.06]">
+      <span class="text-[20vw] font-display font-black text-white whitespace-nowrap -ml-4">SMART-AI</span>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+
+      <!-- Email CTA -->
+      <div>
+        <h3 class="text-2xl font-display font-bold text-white mb-2">Készen állsz?</h3>
+        <p class="text-gray-500 text-sm mb-6 font-light">Kérj ingyenes AI auditot — 48 órán belül visszajelzünk.</p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input type="email" placeholder="webshopod@email.hu"
+                 class="bg-white/10 border border-white/10 px-4 py-3 rounded text-sm w-64 focus:outline-none focus:border-accent text-white placeholder-gray-500 transition-colors">
+          <button class="bg-accent text-white px-6 py-3 rounded font-bold text-sm hover:bg-white hover:text-black transition-colors btn-magnetic whitespace-nowrap">
+            AUDIT KÉRÉSE
+          </button>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="flex gap-12 text-sm text-gray-500 font-mono tracking-wider uppercase">
+        <div class="flex flex-col gap-3">
+          <span class="text-white text-xs">Szolgáltatások</span>
+          <a href="#" class="hover:text-accent transition-colors text-xs">Quick Win</a>
+          <a href="#" class="hover:text-accent transition-colors text-xs">Core AI</a>
+          <a href="#" class="hover:text-accent transition-colors text-xs">Full AI</a>
+        </div>
+        <div class="flex flex-col gap-3">
+          <span class="text-white text-xs">Jogi</span>
+          <a href="#" class="hover:text-accent transition-colors text-xs">ÁSZF</a>
+          <a href="#" class="hover:text-accent transition-colors text-xs">Adatvédelem</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="max-w-[1400px] mx-auto mt-20 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-600 font-mono uppercase">
+      <span>© 2026 SMART-AI. WEBSHOPOD JÖVŐJE.</span>
+      <span class="mt-2 md:mt-0">BUDAPEST, MAGYARORSZÁG</span>
+    </div>
+
+  </footer>
+
+  <script>
+    // 1. LENIS SMOOTH SCROLL + LIQUID SKEW
+    const lenis = new Lenis({ lerp: 0.1, smooth: true, direction: 'vertical' });
+    let currentSkew = 0;
+    function raf(time) {
+      lenis.raf(time);
+      const skewTarget = lenis.velocity * 0.1;
+      currentSkew += (skewTarget - currentSkew) * 0.1;
+      const clampedSkew = Math.max(Math.min(currentSkew, 5), -5);
+      document.querySelectorAll('.skew-target').forEach(el => {
+        el.style.transform = `skewY(${clampedSkew}deg)`;
+      });
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // 2. SPOTLIGHT
+    document.addEventListener('mousemove', (e) => {
+      document.querySelectorAll('.spotlight-card').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+      });
+    });
+
+    // 3. SCRAMBLE TEXT
+    class ScrambleText {
+      constructor(el) {
+        this.el = el;
+        this.chars = '!<>-_\\/[]{}—=+*^?#________';
+        this.update = this.update.bind(this);
+      }
+      setText(newText) {
+        const oldText = this.el.innerText;
+        const length = Math.max(oldText.length, newText.length);
+        const promise = new Promise((resolve) => this.resolve = resolve);
+        this.queue = [];
+        for (let i = 0; i < length; i++) {
+          const from = oldText[i] || '';
+          const to = newText[i] || '';
+          const start = Math.floor(Math.random() * 40);
+          const end = start + Math.floor(Math.random() * 40);
+          this.queue.push({ from, to, start, end });
+        }
+        cancelAnimationFrame(this.frameRequest);
+        this.frame = 0;
+        this.update();
+        return promise;
+      }
+      update() {
+        let output = '';
+        let complete = 0;
+        for (let i = 0, n = this.queue.length; i < n; i++) {
+          let { from, to, start, end, char } = this.queue[i];
+          if (this.frame >= end) {
+            complete++;
+            output += to;
+          } else if (this.frame >= start) {
+            if (!char || Math.random() < 0.28) {
+              char = this.randomChar();
+              this.queue[i].char = char;
+            }
+            output += `<span class="opacity-50 text-accent">${char}</span>`;
+          } else {
+            output += from;
+          }
+        }
+        this.el.innerHTML = output;
+        if (complete === this.queue.length) {
+          this.resolve();
+        } else {
+          this.frameRequest = requestAnimationFrame(this.update);
+          this.frame++;
+        }
+      }
+      randomChar() {
+        return this.chars[Math.floor(Math.random() * this.chars.length)];
+      }
+    }
+
+    const scrambleElements = document.querySelectorAll('.scramble-text');
+    const scrambleObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const fx = new ScrambleText(el);
+          fx.setText(el.innerText);
+          scrambleObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.3 });
+    scrambleElements.forEach(el => scrambleObserver.observe(el));
+
+    // 4. MAGNETIC BUTTONS
+    document.querySelectorAll('.btn-magnetic').forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.2 });
+      });
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, { x: 0, y: 0, duration: 0.2 });
+      });
+    });
+
+    // 5. GSAP SCROLL ANIMATIONS
+    gsap.registerPlugin(ScrollTrigger);
+
+    document.querySelectorAll('.step-item').forEach(item => {
+      gsap.to(item, {
+        scrollTrigger: {
+          trigger: item,
+          start: "top 70%",
+          end: "bottom center",
+          onEnter:     () => gsap.to(item, { opacity: 1, duration: 0.5 }),
+          onLeave:     () => gsap.to(item, { opacity: 0.3, duration: 0.5 }),
+          onEnterBack: () => gsap.to(item, { opacity: 1, duration: 0.5 }),
+          onLeaveBack: () => gsap.to(item, { opacity: 0.3, duration: 0.5 }),
+        }
+      });
+    });
+
+    gsap.utils.toArray('.glass-panel').forEach((panel, i) => {
+      gsap.from(panel, {
+        scrollTrigger: { trigger: panel, start: "top 90%" },
+        y: 30, opacity: 0, duration: 0.8, delay: i * 0.05, ease: "power3.out"
+      });
+    });
+
+    // 6. SERVICE TABS — handled by inline script after the section
+
+    // 7. MULTI-STEP FORM
+    function nextStep(step) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('form-step-' + i);
+        if (el) el.classList.add('hidden');
+      }
+      const target = document.getElementById('form-step-' + step);
+      if (target) {
+        target.classList.remove('hidden');
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      const progress = { 1: 33, 2: 66, 3: 88, 4: 100 };
+      const bar = document.getElementById('form-progress');
+      if (bar) bar.style.width = (progress[step] || 33) + '%';
+    }
+
+    function submitForm() {
+      nextStep(4);
+    }
+
+    // Radio option selection
+    document.querySelectorAll('.form-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const q = option.dataset.q;
+        document.querySelectorAll(`.form-option[data-q="${q}"]`).forEach(o => {
+          o.classList.remove('border-accent', 'bg-accent/5');
+          o.querySelector('.radio-circle').classList.remove('border-accent');
+          o.querySelector('.radio-dot').classList.remove('scale-100');
+          o.querySelector('.radio-dot').classList.add('scale-0');
+        });
+        option.classList.add('border-accent', 'bg-accent/5');
+        option.querySelector('.radio-circle').classList.add('border-accent');
+        option.querySelector('.radio-dot').classList.remove('scale-0');
+        option.querySelector('.radio-dot').classList.add('scale-100');
+      });
+    });
+  </script>
+
+</body>
+</html>

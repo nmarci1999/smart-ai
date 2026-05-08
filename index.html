@@ -99,6 +99,34 @@
       opacity:0.5; animation: scan 3s linear infinite; z-index:10; pointer-events:none;
     }
 
+    .btn-3d-accent {
+      box-shadow: 0 5px 0 #b83600, 0 8px 16px -4px rgba(255,77,0,0.35);
+      transform: translateY(0);
+    }
+    .btn-3d-accent:hover {
+      box-shadow: 0 2px 0 #b83600, 0 4px 8px -4px rgba(255,77,0,0.25);
+      transform: translateY(3px);
+      background-color: #e64500;
+    }
+    .btn-3d-accent:active {
+      box-shadow: 0 1px 0 #b83600;
+      transform: translateY(4px);
+    }
+
+    .btn-3d-white {
+      box-shadow: 0 5px 0 rgba(0,0,0,0.12), 0 8px 16px -4px rgba(0,0,0,0.08);
+      transform: translateY(0);
+    }
+    .btn-3d-white:hover {
+      box-shadow: 0 2px 0 rgba(0,0,0,0.10), 0 4px 8px -4px rgba(0,0,0,0.06);
+      transform: translateY(3px);
+      background-color: #f9f9f9;
+    }
+    .btn-3d-white:active {
+      box-shadow: 0 1px 0 rgba(0,0,0,0.10);
+      transform: translateY(4px);
+    }
+
     .noise-overlay {
       position:fixed; inset:0; z-index:9000; pointer-events:none; opacity:0.03;
       mix-blend-mode:multiply;
@@ -210,12 +238,12 @@
           <path class="pipe-edge" d="M4 15 C 8 15, 8 42, 12 42"    fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <path class="pipe-edge" d="M12 42 C 31 42, 31 6, 50 6"   fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <path class="pipe-edge" d="M12 42 C 10 42, 10 72, 8 72"  fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
-          <path class="pipe-edge" d="M8 72 C 18 72, 18 88, 28 88"  fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
+          <path class="pipe-edge" d="M8 72 C 7 72, 7 90, 6 90"      fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <path class="pipe-edge" d="M50 6 C 69 6, 69 30, 88 30"   fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <path class="pipe-edge" d="M88 30 C 92 30, 92 15, 96 15" fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
-          <path class="pipe-edge" d="M28 88 C 50 88, 50 90, 72 90" fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
+          <path class="pipe-edge" d="M6 90 C 50 90, 50 90, 94 90"  fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <path class="pipe-edge" d="M88 30 C 90 30, 90 68, 92 68" fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
-          <path class="pipe-edge" d="M92 68 C 82 68, 82 90, 72 90" fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
+          <path class="pipe-edge" d="M92 68 C 93 68, 93 90, 94 90" fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <path class="pipe-edge" d="M8 72 C 50 72, 50 68, 92 68"  fill="none" stroke="rgba(10,10,10,0.15)" stroke-width="0.15" stroke-dasharray="0.8 0.5" vector-effect="non-scaling-stroke"/>
           <!-- Traveling orange band (controlled by JS) -->
           <path id="pipe-hl" d="" fill="none" stroke="#FF4D00" stroke-width="0.3" stroke-linecap="round" opacity="0" filter="url(#pipe-glow)"/>
@@ -223,12 +251,12 @@
         <div style="position:absolute;left:4%;top:15%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">webshop.hu</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">data source</div></div>
         <div style="position:absolute;left:12%;top:42%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">events.stream</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">12.4k/s</div></div>
         <div style="position:absolute;left:8%;top:72%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 14px;border-radius:999px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">classifier.ai</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">gpt-4o-mini</div></div>
-        <div style="position:absolute;left:28%;top:88%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 14px;border-radius:999px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">price.engine</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">live</div></div>
+        <div style="position:absolute;left:6%;top:90%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 14px;border-radius:999px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">price.engine</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">live</div></div>
         <div style="position:absolute;left:50%;top:6%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">queue.work</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">4.2k jobs</div></div>
         <div style="position:absolute;left:88%;top:30%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 14px;border-radius:999px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">recommender</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">v3.1</div></div>
         <div style="position:absolute;left:92%;top:68%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 14px;border-radius:999px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">ad.bidder</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">meta+google</div></div>
         <div style="position:absolute;left:96%;top:15%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">storefront</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">render</div></div>
-        <div style="position:absolute;left:72%;top:90%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">metrics.live</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">+38% rev</div></div>
+        <div style="position:absolute;left:94%;top:90%;transform:translate(-50%,-50%);background:rgba(255,255,255,0.85);border:1px solid rgba(10,10,10,0.1);padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;opacity:.55;backdrop-filter:blur(2px);box-shadow:0 12px 24px -16px rgba(10,10,10,0.15);"><div style="font-size:10px;font-weight:600;color:#0a0a0a;letter-spacing:.04em;">metrics.live</div><div style="font-size:9px;color:#6b6b6b;margin-top:1px;">+38% rev</div></div>
         <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 44%,rgba(250,250,250,0.82) 0%,transparent 100%);"></div>
       </div>
       <script>
@@ -292,16 +320,16 @@
 
         <!-- CTAs -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <button class="bg-accent text-white px-8 py-4 font-bold text-sm uppercase tracking-widest hover:bg-black transition-all btn-magnetic shadow-lg shadow-accent/20 w-full sm:w-auto">
+          <button class="bg-accent text-white px-10 py-5 font-bold text-base uppercase tracking-widest transition-all btn-magnetic btn-3d-accent w-full sm:w-auto">
             INGYENES AI AUDIT
           </button>
-          <button class="px-8 py-4 border border-black/10 text-black bg-white font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all btn-magnetic shadow-sm w-full sm:w-auto">
+          <button class="px-10 py-5 border border-black/15 text-black bg-white font-bold text-base uppercase tracking-widest transition-all btn-magnetic btn-3d-white w-full sm:w-auto">
             MEGNÉZEM AZ EREDMÉNYEKET
           </button>
         </div>
 
         <!-- Trust row -->
-        <div class="mt-14 flex flex-wrap items-center justify-center gap-8 opacity-50 hover:opacity-100 transition-opacity duration-500">
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-8 opacity-50 hover:opacity-100 transition-opacity duration-500">
           <div class="flex items-center gap-2">
             <span class="iconify w-4 h-4 text-black" data-icon="lucide:zap"></span>
             <span class="text-xs font-mono text-gray-500 tracking-widest">AI AUTOMATIZÁCIÓ</span>
@@ -320,53 +348,6 @@
 
       </div>
     </section>
-
-    <!-- ═══════════════════════════════════════════════
-         MARQUEE
-    ═══════════════════════════════════════════════ -->
-    <div class="border-y border-black/5 bg-white py-7 relative z-20 overflow-hidden marquee-mask w-full">
-      <div class="flex whitespace-nowrap animate-marquee w-[max-content]">
-
-        <!-- Block ×3 for seamless loop -->
-        <div class="flex gap-12 px-10 items-center">
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">AI AUTOMATIZÁCIÓ</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">WEBSHOP NÖVEKEDÉS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">TEMU ELLEN</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">BEVÉTEL NÖVELÉS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">KONVERZIÓ OPTIMALIZÁLÁS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-        </div>
-        <div class="flex gap-12 px-10 items-center">
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">AI AUTOMATIZÁCIÓ</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">WEBSHOP NÖVEKEDÉS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">TEMU ELLEN</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">BEVÉTEL NÖVELÉS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">KONVERZIÓ OPTIMALIZÁLÁS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-        </div>
-        <div class="flex gap-12 px-10 items-center">
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">AI AUTOMATIZÁCIÓ</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">WEBSHOP NÖVEKEDÉS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">TEMU ELLEN</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">BEVÉTEL NÖVELÉS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-          <span class="font-display font-bold text-2xl text-gray-200 hover:text-black transition-colors cursor-default">KONVERZIÓ OPTIMALIZÁLÁS</span>
-          <span class="text-accent font-display font-bold text-2xl">//</span>
-        </div>
-
-      </div>
-    </div>
 
     <!-- ═══════════════════════════════════════════════
          PAIN / EREDMÉNYEK
